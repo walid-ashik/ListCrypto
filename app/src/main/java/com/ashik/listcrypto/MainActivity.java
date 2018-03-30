@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,7 +55,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getSupportActionBar().hide();
 
+        //Histo Data of BTC of Last Month
         mHistoDataTitle = findViewById(R.id.text_view_btc_history_title);
+        String title = "High & Low rate of last month of BTC";
+        SpannableString spannableString = new SpannableString(title);
+        ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(getResources().getColor(R.color.colorAccent));
+        spannableString.setSpan(foregroundColorSpan, 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        mHistoDataTitle.setText(spannableString);
 
         mRequestQueue = VolleySingleton.getInstance(this).getRequestQueue();
         mQueue = Volley.newRequestQueue(this);
@@ -73,36 +81,29 @@ public class MainActivity extends AppCompatActivity {
         mChart.getAxisRight().setDrawGridLines(false);
         mChart.animateX(3000);
 
-
+        //Modify LineGraph
         XAxis xAxis = mChart.getXAxis();
         xAxis.setEnabled(false);
-
         YAxis yAxis = mChart.getAxisLeft();
         yAxis.setEnabled(false);
-
         YAxis yAxis2 = mChart.getAxisRight();
         yAxis2.setEnabled(false);
 
         mChart.setDrawBorders(false);
         mChart.setDrawGridBackground(false);
-
         mChart.getLegend().setEnabled(false);
         // no description text
         mChart.getDescription().setEnabled(false);
-
         // enable touch gestures
         mChart.setTouchEnabled(true);
-
         // enable scaling and dragging
         mChart.setDragEnabled(false);
         mChart.setScaleEnabled(false);
         mChart.setScaleXEnabled(true);
         mChart.setScaleYEnabled(true);
-
         // hide legend
         Legend legend = mChart.getLegend();
         legend.setEnabled(false);
-
         mChart.invalidate();
 
         //for all currencies list
