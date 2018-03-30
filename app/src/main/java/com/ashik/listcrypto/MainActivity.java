@@ -19,13 +19,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = ".MainActivity";
 
-    private RequestQueue mRequestQueue;
+    private RequestQueue mRequestQueue, mQueue;
 
     private RecyclerView mRecyclerView;
     private CurrencyAdapter mCurrencyAdapter;
@@ -38,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().hide();
 
         mRequestQueue = VolleySingleton.getInstance(this).getRequestQueue();
+        mQueue = Volley.newRequestQueue(this);
 
         mRecyclerView = findViewById(R.id.currency_recycler_view);
         mRecyclerView.setHasFixedSize(true);
@@ -45,8 +49,58 @@ public class MainActivity extends AppCompatActivity {
 
         mCurrencyList  = new ArrayList<>();
 
+        //for all currencies list
         parseJson();
 
+        //show graph
+        parseJsonForCurrencyDay();
+
+
+    }
+
+    private void parseJsonForCurrencyDay() {
+
+        String histoDayUrl = "https://min-api.cryptocompare.com/data/histoday?fsym=BTC&tsym=USD&limit=60&aggregate=3&e=CCCAGG";
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, histoDayUrl, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                        try {
+
+                            JSONArray jsonArray = response.getJSONArray("Data");
+                            for (int i = 0; i<jsonArray.length(); i++){
+
+                                JSONObject data = jsonArray.getJSONObject(i);
+
+                                //format timestamp to date
+                                long timestamp = data.getLong("time");
+
+                                Date d = new Date(timestamp * 1000);
+                                SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yy");
+                                String date = df2.format(d);
+
+                                double high = data.getDouble("high");
+                                double low = data.getDouble("low");
+
+                                Log.d(TAG, "histoday: " + "             date: " + date + "      high: " + high + "      low: " + low);
+
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+
+        mQueue.add(jsonObjectRequest);
 
     }
 
