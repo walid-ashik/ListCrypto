@@ -2,6 +2,8 @@ package com.ashik.listcrypto;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -17,11 +19,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = ".MainActivity";
 
-    private RequestQueue mQueue;
+    private RequestQueue mRequestQueue;
+
+    private RecyclerView mRecyclerView;
+    private CurrencyAdapter mCurrencyAdapter;
+    private ArrayList<CurrencyItem> mCurrencyList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,14 +37,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getSupportActionBar().hide();
 
-        mQueue = VolleySingleton.getInstance(this).getRequestQueue();
+        mRequestQueue = VolleySingleton.getInstance(this).getRequestQueue();
 
-        jsonParse();
+        mRecyclerView = findViewById(R.id.currency_recycler_view);
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        mCurrencyList  = new ArrayList<>();
+
+        parseJson();
 
 
     }
 
-    private void jsonParse() {
+    private void parseJson() {
 
         String url = "https://api.coinmarketcap.com/v1/ticker/";
 
@@ -55,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
                         String rank = currency.getString("rank");
                         String price_usd = currency.getString("price_usd");
                         String price_btc = currency.getString("price_btc");
+
+                       /*
                         String volume_usd_24h = currency.getString("24h_volume_usd");
                         String market_cap_usd = currency.getString("market_cap_usd");
                         String available_supply = currency.getString("available_supply");
@@ -67,13 +83,21 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.d(TAG, "onResponse:" + "\nid: " + id + "\ncoin_name: " + coin_name + "\n");
 
-                        Toast.makeText(MainActivity.this, id, Toast.LENGTH_SHORT).show();
+                        */
+
+                        mCurrencyList.add(new CurrencyItem(id,coin_name,symbol, rank,price_usd,price_btc));
+
+
 
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
 
                 }
+
+                mCurrencyAdapter = new CurrencyAdapter(MainActivity.this, mCurrencyList);
+                mRecyclerView.setAdapter(mCurrencyAdapter);
+
 
             }
         }, new Response.ErrorListener() {
@@ -83,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mQueue.add(jsonArrayRequest);
+        mRequestQueue.add(jsonArrayRequest);
 
     }
 }
