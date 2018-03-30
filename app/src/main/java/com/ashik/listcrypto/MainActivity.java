@@ -1,10 +1,13 @@
 package com.ashik.listcrypto;
 
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableString;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -14,6 +17,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = ".MainActivity";
 
+    private TextView mHistoDataTitle;
+    private LineChart mChart;
+
     private RequestQueue mRequestQueue, mQueue;
 
     private RecyclerView mRecyclerView;
@@ -40,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getSupportActionBar().hide();
 
+        mHistoDataTitle = findViewById(R.id.text_view_btc_history_title);
+
         mRequestQueue = VolleySingleton.getInstance(this).getRequestQueue();
         mQueue = Volley.newRequestQueue(this);
 
@@ -48,6 +63,47 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         mCurrencyList  = new ArrayList<>();
+
+        mChart = findViewById(R.id.line_chart);
+        mChart.getAxisLeft().setDrawLabels(false);
+        mChart.getAxisRight().setDrawLabels(false);
+        mChart.getXAxis().setDrawLabels(false);
+        mChart.getAxisLeft().setDrawGridLines(false);
+        mChart.getXAxis().setDrawGridLines(false);
+        mChart.getAxisRight().setDrawGridLines(false);
+        mChart.animateX(3000);
+
+
+        XAxis xAxis = mChart.getXAxis();
+        xAxis.setEnabled(false);
+
+        YAxis yAxis = mChart.getAxisLeft();
+        yAxis.setEnabled(false);
+
+        YAxis yAxis2 = mChart.getAxisRight();
+        yAxis2.setEnabled(false);
+
+        mChart.setDrawBorders(false);
+        mChart.setDrawGridBackground(false);
+
+        mChart.getLegend().setEnabled(false);
+        // no description text
+        mChart.getDescription().setEnabled(false);
+
+        // enable touch gestures
+        mChart.setTouchEnabled(true);
+
+        // enable scaling and dragging
+        mChart.setDragEnabled(false);
+        mChart.setScaleEnabled(false);
+        mChart.setScaleXEnabled(true);
+        mChart.setScaleYEnabled(true);
+
+        // hide legend
+        Legend legend = mChart.getLegend();
+        legend.setEnabled(false);
+
+        mChart.invalidate();
 
         //for all currencies list
         parseJson();
@@ -62,10 +118,15 @@ public class MainActivity extends AppCompatActivity {
 
         String histoDayUrl = "https://min-api.cryptocompare.com/data/histoday?fsym=BTC&tsym=USD&limit=60&aggregate=3&e=CCCAGG";
 
+
+
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, histoDayUrl, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
+
+                        ArrayList<Entry> yVals1 = new ArrayList<>();
+                        ArrayList<Entry> yVals2 = new ArrayList<>();
 
                         try {
 
@@ -84,9 +145,30 @@ public class MainActivity extends AppCompatActivity {
                                 double high = data.getDouble("high");
                                 double low = data.getDouble("low");
 
+                                yVals1.add(new Entry(timestamp / 1000, (float) high));
+                                yVals2.add(new Entry(timestamp / 1000, (float) low));
+
+                               // setGraphData(jsonArray.length(),timestamp, high, low);
+
                                 Log.d(TAG, "histoday: " + "             date: " + date + "      high: " + high + "      low: " + low);
 
                             }
+
+                            LineDataSet setHigh, setLow;
+
+                            setHigh = new LineDataSet(yVals1, "High");
+                            setHigh.setColor(getResources().getColor(R.color.colorAccent));
+                            setHigh.setLineWidth(2f);
+                            setHigh.setDrawCircles(false);
+                            setHigh.setDrawValues(false);
+
+                            setLow = new LineDataSet(yVals2, "low");
+                            setLow.setColor(getResources().getColor(R.color.almostWhite));
+                            setLow.setDrawCircles(false);
+
+                            LineData lineData = new LineData(setHigh, setLow);
+
+                            mChart.setData(lineData);
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -101,6 +183,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mQueue.add(jsonObjectRequest);
+
+    }
+
+    private void setGraphData(int length, long timestamp, double high, double low) {
+
+
+
 
     }
 
