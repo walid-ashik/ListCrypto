@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getSupportActionBar().hide();
 
-        mQueue = Volley.newRequestQueue(this);
+        mQueue = VolleySingleton.getInstance(this).getRequestQueue();
 
         jsonParse();
 
@@ -65,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
                         String percent_change_7d = currency.getString("percent_change_7d");
                         String last_updated = currency.getString("last_updated");
 
+                        Log.d(TAG, "onResponse:" + "\nid: " + id + "\ncoin_name: " + coin_name + "\n");
+
+                        Toast.makeText(MainActivity.this, id, Toast.LENGTH_SHORT).show();
 
                     } catch (JSONException e) {
                         e.printStackTrace();
