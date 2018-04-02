@@ -1,5 +1,6 @@
 package com.ashik.listcrypto;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -36,9 +37,23 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements CurrencyAdapter.OnItemClickListener{
 
     private static final String TAG = ".MainActivity";
+    public static final String EXTRA_ID = "id";
+    public static final String EXTRA_COIN_NAME = "coin_name";
+    public static final String EXTRA_SYMBOL = "symbol";
+    public static final String EXTRA_RANK = "rank";
+    public static final String EXTRA_PRICE_USD = "price_usd";
+    public static final String EXTRA_BTC = "price_btc";
+    public static final String EXTRA_VOLUME_24H = "volume_usd_24h";
+    public static final String EXTRA_MARKET_CAP = "market_cap_usd";
+    public static final String EXTRA_AVAILABLE_SUPPY = "available_supply";
+    public static final String EXTRA_TOTAL_SUPPLY = "total_supply";
+    public static final String EXTRA_PERCENT_CHANGE_1H = "percent_change_1h";
+    public static final String EXTRA_PERCENT_CHANGE_24H = "percent_change_24h";
+    public static final String EXTRA_PERCENT_CHANGE_7D = "percent_change_7d";
+    public static final String EXTRA_LAST_UPDATED = "last_updated";
 
     private TextView mHistoDataTitle;
     private LineChart mChart;
@@ -48,6 +63,23 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private CurrencyAdapter mCurrencyAdapter;
     private ArrayList<CurrencyItem> mCurrencyList;
+
+    //CoinActivityDetails Intent data
+    private String id = "";
+    private String coin_name = "";
+    private String symbol = "";
+    private String rank = "";
+    private String price_usd = "";
+    private String price_btc = "";
+    private String volume_usd_24h = "";
+    private String market_cap_usd = "";
+    private String available_supply = "";
+    private String total_supply = "";
+    private String max_supply = "";
+    private String percent_change_1h = "";
+    private String percent_change_24h = "";
+    private String percent_change_7d = "";
+    private String last_updated = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,9 +149,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void parseJsonForCurrencyDay() {
 
-        String histoDayUrl = "https://min-api.cryptocompare.com/data/histoday?fsym=BTC&tsym=USD&limit=60&aggregate=3&e=CCCAGG";
-
-
+        String histoDayUrl = "https://min-api.cryptocompare.com/data/histoday?fsym=BTH&tsym=USD&limit=60&aggregate=3&e=CCCAGG";
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, histoDayUrl, null,
                 new Response.Listener<JSONObject>() {
@@ -187,12 +217,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void setGraphData(int length, long timestamp, double high, double low) {
-
-
-
-
-    }
 
     private void parseJson() {
 
@@ -214,22 +238,21 @@ public class MainActivity extends AppCompatActivity {
                         String price_usd = currency.getString("price_usd");
                         String price_btc = currency.getString("price_btc");
 
-                       /*
-                        String volume_usd_24h = currency.getString("24h_volume_usd");
-                        String market_cap_usd = currency.getString("market_cap_usd");
-                        String available_supply = currency.getString("available_supply");
-                        String total_supply = currency.getString("total_supply");
-                        String max_supply = currency.getString("max_supply");
-                        String percent_change_1h = currency.getString("percent_change_1h");
-                        String percent_change_24h = currency.getString("percent_change_24h");
-                        String percent_change_7d = currency.getString("percent_change_7d");
-                        String last_updated = currency.getString("last_updated");
+                        volume_usd_24h = currency.getString("24h_volume_usd");
+                        market_cap_usd = currency.getString("market_cap_usd");
+                        available_supply = currency.getString("available_supply");
+                        total_supply = currency.getString("total_supply");
+                        max_supply = currency.getString("max_supply");
+                        percent_change_1h = currency.getString("percent_change_1h");
+                        percent_change_24h = currency.getString("percent_change_24h");
+                        percent_change_7d = currency.getString("percent_change_7d");
+                        last_updated = currency.getString("last_updated");
 
                         Log.d(TAG, "onResponse:" + "\nid: " + id + "\ncoin_name: " + coin_name + "\n");
 
-                        */
 
-                        mCurrencyList.add(new CurrencyItem(id,coin_name,symbol, rank,price_usd,price_btc));
+                        mCurrencyList.add(new CurrencyItem(id,coin_name,symbol, rank,price_usd,price_btc,volume_usd_24h, market_cap_usd,
+                                available_supply, total_supply,max_supply, percent_change_1h,percent_change_24h, percent_change_7d, last_updated));
 
 
 
@@ -241,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
 
                 mCurrencyAdapter = new CurrencyAdapter(MainActivity.this, mCurrencyList);
                 mRecyclerView.setAdapter(mCurrencyAdapter);
-
+                mCurrencyAdapter.setOnItemClickListener(MainActivity.this);
 
             }
         }, new Response.ErrorListener() {
@@ -252,6 +275,30 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mRequestQueue.add(jsonArrayRequest);
+
+    }
+
+    @Override
+    public void onItemClick(int position) {
+
+        Intent coinDetailsIntent = new Intent(this, CoinDetailsActivity.class);
+
+        CurrencyItem clickedItem = mCurrencyList.get(position);
+        coinDetailsIntent.putExtra(EXTRA_ID, clickedItem.getId());
+        coinDetailsIntent.putExtra(EXTRA_SYMBOL, clickedItem.getSymbol());
+        coinDetailsIntent.putExtra(EXTRA_RANK, clickedItem.getRank());
+        coinDetailsIntent.putExtra(EXTRA_PRICE_USD, clickedItem.getPrice_usd());
+        coinDetailsIntent.putExtra(EXTRA_BTC, clickedItem.getPrice_btc());
+        coinDetailsIntent.putExtra(EXTRA_VOLUME_24H, clickedItem.getVolume_usd_24h());
+        coinDetailsIntent.putExtra(EXTRA_MARKET_CAP, clickedItem.getMarket_cap_usd());
+        coinDetailsIntent.putExtra(EXTRA_AVAILABLE_SUPPY, clickedItem.getAvailable_supply());
+        coinDetailsIntent.putExtra(EXTRA_TOTAL_SUPPLY, clickedItem.getTotal_supply());
+        coinDetailsIntent.putExtra(EXTRA_PERCENT_CHANGE_1H, clickedItem.getPercent_change_1h());
+        coinDetailsIntent.putExtra(EXTRA_PERCENT_CHANGE_24H, clickedItem.getPercent_change_24h());
+        coinDetailsIntent.putExtra(EXTRA_PERCENT_CHANGE_7D, clickedItem.getPercent_change_7d());
+        coinDetailsIntent.putExtra(EXTRA_LAST_UPDATED, clickedItem.getLast_updated());
+
+        startActivity(coinDetailsIntent);
 
     }
 }
