@@ -65,12 +65,6 @@ public class MainActivity extends AppCompatActivity implements CurrencyAdapter.O
     private ArrayList<CurrencyItem> mCurrencyList;
 
     //CoinActivityDetails Intent data
-    private String id = "";
-    private String coin_name = "";
-    private String symbol = "";
-    private String rank = "";
-    private String price_usd = "";
-    private String price_btc = "";
     private String volume_usd_24h = "";
     private String market_cap_usd = "";
     private String available_supply = "";
@@ -148,8 +142,7 @@ public class MainActivity extends AppCompatActivity implements CurrencyAdapter.O
     }
 
     private void parseJsonForCurrencyDay() {
-
-        String histoDayUrl = "https://min-api.cryptocompare.com/data/histoday?fsym=BTH&tsym=USD&limit=60&aggregate=3&e=CCCAGG";
+        String histoDayUrl = "https://min-api.cryptocompare.com/data/histoday?fsym=BTC&tsym=USD&limit=60&aggregate=3&e=CCCAGG";
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, histoDayUrl, null,
                 new Response.Listener<JSONObject>() {
