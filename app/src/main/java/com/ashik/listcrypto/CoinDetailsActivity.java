@@ -3,8 +3,12 @@ package com.ashik.listcrypto;
 import android.animation.ValueAnimator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -47,7 +51,18 @@ public class CoinDetailsActivity extends AppCompatActivity {
     private static final String TAG = "COINDETAILSACTIVITY";
 
     private LineChart mChart;
+
     private TextView mCoinPriceInUsd;
+    private TextView mCoinSymbol;
+    private TextView mCoinPriceBTC;
+    private TextView mCoin24hVolume;
+    private TextView mCoinMarketCap;
+    private TextView mCoinAvailableSupply;
+    private TextView mCoinPercentChange1h;
+    private TextView mCoinPercentChange24h;
+    private TextView mCoinPercentChange7d;
+    private TextView mHistoDayTitle;
+
 
     private RequestQueue mQueue;
 
@@ -74,6 +89,15 @@ public class CoinDetailsActivity extends AppCompatActivity {
 
         mChart = findViewById(R.id.coin_details_line_chart);
         mCoinPriceInUsd = findViewById(R.id.coin_details_price_usd);
+        mCoinSymbol = findViewById(R.id.coind_details_coin_symbol);
+        mCoinPriceBTC = findViewById(R.id.text_view_price_in_btc);
+        mCoin24hVolume = findViewById(R.id.text_view_24h_volume_usd);
+        mCoinMarketCap = findViewById(R.id.text_view_market_cap);
+        mCoinAvailableSupply = findViewById(R.id.text_view_available_supply);
+        mCoinPercentChange1h = findViewById(R.id.text_view_percent_1h);
+        mCoinPercentChange24h = findViewById(R.id.text_view_percent_24h);
+        mCoinPercentChange7d = findViewById(R.id.text_view_percent_chagne_7d);
+        mHistoDayTitle = findViewById(R.id.text_view_histoday);
 
         //get details from previous activity
         coinId = getIntent().getStringExtra(EXTRA_ID);
@@ -91,9 +115,42 @@ public class CoinDetailsActivity extends AppCompatActivity {
         coinChange7d = getIntent().getStringExtra(EXTRA_PERCENT_CHANGE_7D);
         coinLastUpdated = getIntent().getStringExtra(EXTRA_LAST_UPDATED);
 
+        mCoinSymbol.setText(coinRank + ". " + coinSymbol);
+
+        mCoinPriceBTC.setText(coinPriceBtc);
+        mCoin24hVolume.setText(coinVolume24h);
+        mCoinMarketCap.setText(coinMarketCap);
+        mCoinAvailableSupply.setText(coinAvailableSupply);
+
+        Double change1hDouble = Double.parseDouble(coinChange1h);
+        if (change1hDouble <= 0) {
+            mCoinPercentChange1h.setTextColor(getResources().getColor(R.color.almostRed));
+            mCoinPercentChange1h.setText(coinChange1h + "%");
+        } else {
+            mCoinPercentChange1h.setText(coinChange1h + "%");
+        }
+
+
+        Double change24hDouble = Double.parseDouble(coinChnage24h);
+        if (change24hDouble <= 0) {
+            mCoinPercentChange24h.setTextColor(getResources().getColor(R.color.almostRed));
+            mCoinPercentChange24h.setText(coinChnage24h + "%");
+        } else {
+            mCoinPercentChange24h.setText(coinChnage24h + "%");
+        }
+
+        Double change7dDouble = Double.parseDouble(coinChange7d);
+
+        if (change7dDouble < 0) {
+            mCoinPercentChange7d.setTextColor(getResources().getColor(R.color.almostRed));
+            mCoinPercentChange7d.setText(coinChange7d + "%");
+        } else {
+            mCoinPercentChange7d.setText(coinChange7d + "%");
+        }
+
+
         float f = Float.valueOf(coinPriceUsd);
         int usdCoinPrice = Math.round(f);
-
         //Set coin Price Usd
         //animate if price is greater than 0 else set string directly to textview
         if(usdCoinPrice > 1){
@@ -102,8 +159,6 @@ public class CoinDetailsActivity extends AppCompatActivity {
             mCoinPriceInUsd.setText("$" + coinPriceUsd  );
         }
 
-        Log.d(TAG, "details: " + coinId + " " + coinCoinName + " " + coinSymbol + " " +coinRank + " " +coinPriceUsd + " " +coinPriceBtc
-                + " " +coinVolume24h + " " +coinMarketCap + " " +coinAvailableSupply + " " +coinTotalSupply + " " +coinChange1h + " " +coinChnage24h + " " +coinChange7d + " " + coinLastUpdated + "\n\n\n");
 
         mQueue = new VolleySingleton(this).getRequestQueue();
 
@@ -113,6 +168,12 @@ public class CoinDetailsActivity extends AppCompatActivity {
             //show graph
             parseJsonForCurrencyDay();
         }
+
+        String title = "High & Low rate of last month of BTC";
+        SpannableString spannableString = new SpannableString(title);
+        ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(getResources().getColor(R.color.colorAccent));
+        spannableString.setSpan(foregroundColorSpan, 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        mHistoDayTitle.setText(spannableString);
 
 
     }
@@ -170,69 +231,71 @@ public class CoinDetailsActivity extends AppCompatActivity {
 
     private void parseJsonForCurrencyDay() {
 
-        String histoDayUrl = "https://min-api.cryptocompare.com/data/histoday?fsym="  + coinSymbol + "&tsym=USD&limit=60&aggregate=3&e=CCCAGG";
+        if (!coinSymbol.equals("MIOTA")) {
 
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, histoDayUrl, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
+            String histoDayUrl = "https://min-api.cryptocompare.com/data/histoday?fsym=" + coinSymbol + "&tsym=USD&limit=60&aggregate=3&e=CCCAGG";
 
-                        ArrayList<Entry> yVals1 = new ArrayList<>();
-                        ArrayList<Entry> yVals2 = new ArrayList<>();
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, histoDayUrl, null,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
 
-                        try {
+                            ArrayList<Entry> yVals1 = new ArrayList<>();
+                            ArrayList<Entry> yVals2 = new ArrayList<>();
 
-                            JSONArray jsonArray = response.getJSONArray("Data");
-                            for (int i = 0; i<jsonArray.length(); i++){
+                            try {
 
-                                JSONObject data = jsonArray.getJSONObject(i);
+                                JSONArray jsonArray = response.getJSONArray("Data");
+                                for (int i = 0; i < jsonArray.length(); i++) {
 
-                                //format timestamp to date
-                                long timestamp = data.getLong("time");
+                                    JSONObject data = jsonArray.getJSONObject(i);
 
-                                Date d = new Date(timestamp * 1000);
-                                SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yy");
-                                String date = df2.format(d);
+                                    //format timestamp to date
+                                    long timestamp = data.getLong("time");
 
-                                double high = data.getDouble("high");
-                                double low = data.getDouble("low");
+                                    Date d = new Date(timestamp * 1000);
+                                    SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yy");
+                                    String date = df2.format(d);
 
-                                yVals1.add(new Entry(timestamp / 1000, (float) high));
-                                yVals2.add(new Entry(timestamp / 1000, (float) low));
+                                    double high = data.getDouble("high");
+                                    double low = data.getDouble("low");
 
+                                    yVals1.add(new Entry(timestamp / 1000, (float) high));
+                                    yVals2.add(new Entry(timestamp / 1000, (float) low));
+
+                                }
+
+                                LineDataSet setHigh, setLow;
+
+                                setHigh = new LineDataSet(yVals1, "High");
+                                setHigh.setColor(getResources().getColor(R.color.colorAccent));
+                                setHigh.setLineWidth(2f);
+                                setHigh.setDrawCircles(false);
+                                setHigh.setDrawValues(false);
+
+                                setLow = new LineDataSet(yVals2, "low");
+                                setLow.setColor(getResources().getColor(R.color.almostWhite));
+                                setLow.setDrawCircles(false);
+
+                                LineData lineData = new LineData(setHigh, setLow);
+
+                                mChart.setData(lineData);
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
 
-                            LineDataSet setHigh, setLow;
-
-                            setHigh = new LineDataSet(yVals1, "High");
-                            setHigh.setColor(getResources().getColor(R.color.colorAccent));
-                            setHigh.setLineWidth(2f);
-                            setHigh.setDrawCircles(false);
-                            setHigh.setDrawValues(false);
-
-                            setLow = new LineDataSet(yVals2, "low");
-                            setLow.setColor(getResources().getColor(R.color.almostWhite));
-                            setLow.setDrawCircles(false);
-
-                            LineData lineData = new LineData(setHigh, setLow);
-
-                            mChart.setData(lineData);
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
                         }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    error.printStackTrace();
+                }
+            });
 
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
-            }
-        });
+            mQueue.add(jsonObjectRequest);
 
-        mQueue.add(jsonObjectRequest);
-
+        }
     }
-
 
 }
