@@ -99,7 +99,7 @@ public class CoinDetailsActivity extends AppCompatActivity {
         if(usdCoinPrice > 1){
             animatePriceInUsd(0, usdCoinPrice, mCoinPriceInUsd);
         }else {
-            mCoinPriceInUsd.setText("$" + coinPriceUsd );
+            mCoinPriceInUsd.setText("$" + coinPriceUsd  );
         }
 
         Log.d(TAG, "details: " + coinId + " " + coinCoinName + " " + coinSymbol + " " +coinRank + " " +coinPriceUsd + " " +coinPriceBtc
